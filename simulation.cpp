@@ -323,8 +323,8 @@ SimulationResult DoSimulation(CharLayout charLayout, StatLayout statLayout)
 
 				if (crit)
 				{
-					baseDamage *= 2.0f;
-					strDamage *= 2.0f;
+					baseDamage *= critMultiplier;
+					strDamage *= critMultiplier;
 				}
 
 				// PROPOSED CHANGES
