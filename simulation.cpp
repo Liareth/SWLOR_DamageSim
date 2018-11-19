@@ -290,7 +290,7 @@ SimulationResult DoSimulation(CharLayout charLayout, StatLayout statLayout)
 					case ItemType::FinesseVibroblade: baseDamage += Roll(1, 6); break; // 1d6 rapier
 					case ItemType::Baton: baseDamage += Roll(1, 8); break; // 1d8 morningstar
 					case ItemType::HeavyVibroblade: baseDamage += Roll(2, 6); break; // 2d6 greatsword
-					case ItemType::Saberstaff: baseDamage += Roll(2, 6); break; // 1d10
+					case ItemType::Saberstaff: baseDamage += Roll(2, 6); break; // 2d6
 					case ItemType::Polearm: baseDamage += Roll(1, 10); break; // 1d10 halberd
 					case ItemType::TwinBlade: baseDamage += Roll(1, 8); break; // 1d8
 					case ItemType::MartialArtWeapon: break; // Unknown ?
@@ -684,6 +684,7 @@ CharPerk::Enum GetWeaponSpecPerk(ItemType::Enum type)
 		case ItemType::MartialArtWeapon: return CharPerk::MartialArts_WeaponFocus;
 		case ItemType::BlasterPistol: return CharPerk::BlasterPistol_WeaponFocus;
 		case ItemType::BlasterRifle: return CharPerk::BlasterRifle_WeaponFocus;
+		case ItemType::Lightsaber: return CharPerk::Lightsaber_WeaponFocus;
 	}
 
 	return CharPerk::Invalid;
@@ -723,6 +724,7 @@ CharPerk::Enum GetWeaponCritPerk(ItemType::Enum type)
 		case ItemType::MartialArtWeapon: return CharPerk::MartialArts_ImprovedCrit;
 		case ItemType::BlasterPistol: return CharPerk::BlasterPistol_ImprovedCrit;
 		case ItemType::BlasterRifle: return CharPerk::BlasterRifle_ImprovedCrit;
+		case ItemType::Lightsaber: return CharPerk::Lightsaber_ImprovedCrit;
 	}
 
 	return CharPerk::Invalid;

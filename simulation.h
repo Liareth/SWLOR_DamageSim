@@ -124,6 +124,8 @@ struct CharPerk
 		OneHanded_DualWielding,
 
 		Lightsaber_Proficiency,
+		Lightsaber_ImprovedCrit,
+		Lightsaber_WeaponFocus,
 
 		Vibroblade_ImprovedCrit,
 		Vibroblade_Proficiency,
