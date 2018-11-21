@@ -101,8 +101,14 @@ int main()
 			CharLayout charLayout;
 			charLayout.itemType = static_cast<ItemType::Enum>(i);
 			charLayout.background = GetBackgroundForBABBonus(charLayout.itemType);
-			charLayout.skills.push_back({ GetGoverningSkill(charLayout.itemType), 100 });
-			charLayout.perks.push_back({ CharPerk::Stance_SwordOath, 1 });
+
+			CharSkill::Enum governingSkill = GetGoverningSkill(charLayout.itemType);
+			charLayout.skills.push_back({ governingSkill, GetMaxSkillLevel(governingSkill) });
+
+			if (IsRanged(charLayout.itemType))
+			{
+				charLayout.perks.push_back({ CharPerk::Stance_PrecisionTargeting, GetMaxPerkLevel(CharPerk::Stance_PrecisionTargeting ) });
+			}
 
 			CharPerk::Enum profiencyPerk = GetWeaponProficiencyPerk(charLayout.itemType);
 			CharPerk::Enum specPerk = GetWeaponSpecPerk(charLayout.itemType);
@@ -110,17 +116,17 @@ int main()
 
 			if (profiencyPerk != CharPerk::Invalid)
 			{
-				charLayout.perks.push_back({ profiencyPerk, 10 });
+				charLayout.perks.push_back({ profiencyPerk, GetMaxPerkLevel(profiencyPerk) });
 			}
 
 			if (specPerk != CharPerk::Invalid)
 			{
-				charLayout.perks.push_back({ specPerk, 2 });
+				charLayout.perks.push_back({ specPerk, GetMaxPerkLevel(specPerk) });
 			}
 
 			if (critPerk != CharPerk::Invalid)
 			{
-				charLayout.perks.push_back({ critPerk, 1 });
+				charLayout.perks.push_back({ critPerk, GetMaxPerkLevel(critPerk) });
 			}			
 
 			StatLayout statsLayout = BuildStats(charLayout);
@@ -129,29 +135,28 @@ int main()
 
 			if (charLayout.itemType == ItemType::FinesseVibroblade)
 			{
+				charLayout.perks.push_back({ CharPerk::FinesseVibroblade_WeaponFinesse, GetMaxPerkLevel(CharPerk::FinesseVibroblade_WeaponFinesse) });
 				statsLayout.str = 60;
-				charLayout.perks.push_back({ CharPerk::FinesseVibroblade_WeaponFinesse, 1 });
-			}
-
-			if (charLayout.itemType == ItemType::BlasterRifle)
-			{
-				charLayout.perks.push_back({ CharPerk::BlasterRifle_RapidReload, 1 });
-			}
-
-			if (charLayout.itemType == ItemType::TwinBlade)
-			{
-				charLayout.perks.push_back({ CharPerk::TwinVibroblade_Mastery , 3 });
 			}
 
 			if (charLayout.itemType == ItemType::Lightsaber || charLayout.itemType == ItemType::Saberstaff)
 			{
-				statsLayout.cha = 60;
+				statsLayout.cha = 25;
+			}
+
+			if (charLayout.itemType == ItemType::BlasterRifle)
+			{
+				charLayout.perks.push_back({ CharPerk::BlasterRifle_RapidReload, GetMaxPerkLevel(CharPerk::BlasterRifle_RapidReload) });
+			}
+
+			if (charLayout.itemType == ItemType::TwinBlade)
+			{
+				charLayout.perks.push_back({ CharPerk::TwinVibroblade_Mastery , GetMaxPerkLevel(CharPerk::TwinVibroblade_Mastery) });
 			}
 
 			if (charLayout.itemType == ItemType::Saberstaff)
 			{
-				// TEMP - fix!
-				charLayout.perks.push_back({ CharPerk::OneHanded_DualWielding , 3 });
+				charLayout.perks.push_back({ CharPerk::SaberStaff_Mastery , GetMaxPerkLevel(CharPerk::SaberStaff_Mastery) });
 			}
 
 			std::string format = ToString(charLayout.itemType);
@@ -159,41 +164,46 @@ int main()
 			resultNames.emplace_back(format);
 			resultColours.emplace_back(getColourString());
 
-			if (charLayout.itemType == ItemType::Lightsaber)
+			if (charLayout.itemType == ItemType::Lightsaber || charLayout.itemType == ItemType::FinesseVibroblade)
 			{
-				charLayout.perks.push_back({ CharPerk::OneHanded_DualWielding, 3 });
+				charLayout.perks.push_back({ CharPerk::OneHanded_DualWielding, GetMaxPerkLevel(CharPerk::OneHanded_DualWielding) });
 				results.emplace_back(DoSimulation(charLayout, statsLayout));
 				resultNames.emplace_back(format + " (DualWield)");
 				resultColours.emplace_back(getColourString());
 			}
 
-			if (charLayout.itemType == ItemType::FinesseVibroblade)
+			if (charLayout.itemType == ItemType::BlasterPistol || charLayout.itemType == ItemType::BlasterRifle)
 			{
-				charLayout.perks.push_back({ CharPerk::OneHanded_DualWielding, 3 });
+				charLayout.perks.push_back({ CharPerk::Firearms_PlasmaCell, GetMaxPerkLevel(CharPerk::Firearms_PlasmaCell) });
 				results.emplace_back(DoSimulation(charLayout, statsLayout));
-				resultNames.emplace_back(format + " (DualWield)");
+				resultNames.emplace_back(format + " (w/ PlasmaCell)");
 				resultColours.emplace_back(getColourString());
 			}
 
 			if (charLayout.itemType == ItemType::BlasterPistol)
 			{
-				charLayout.perks.push_back({ CharPerk::BlasterPistol_RapidShot, 1 });
+				charLayout.perks.push_back({ CharPerk::BlasterPistol_RapidShot, GetMaxPerkLevel(CharPerk::BlasterPistol_RapidShot) });
 				results.emplace_back(DoSimulation(charLayout, statsLayout));
-				resultNames.emplace_back(format + " (w/ RapidShot)");
-				resultColours.emplace_back(getColourString());
-
-				charLayout.perks.push_back({ CharPerk::BlasterPistol_PlasmaCell, 10 });
-				results.emplace_back(DoSimulation(charLayout, statsLayout));
-				resultNames.emplace_back(format + " (w/ RapidShot, PlasmaCell)");
+				resultNames.emplace_back(format + " (w/ PlasmaCell, RapidShot)");
 				resultColours.emplace_back(getColourString());
 			}
 
-			if (charLayout.itemType == ItemType::BlasterRifle)
+			if (charLayout.itemType == ItemType::Lightsaber || charLayout.itemType == ItemType::Saberstaff)
 			{
-				charLayout.perks.push_back({ CharPerk::BlasterRifle_PlasmaCell, 10 });
+				statsLayout.str = 60;
+				statsLayout.cha = 40;
+
 				results.emplace_back(DoSimulation(charLayout, statsLayout));
-				resultNames.emplace_back(format + " (w/ PlasmaCell)");
+				resultNames.emplace_back(format + " (Realistic)");
 				resultColours.emplace_back(getColourString());
+
+				if (charLayout.itemType == ItemType::Lightsaber)
+				{
+					charLayout.perks.push_back({ CharPerk::OneHanded_DualWielding, GetMaxPerkLevel(CharPerk::OneHanded_DualWielding) });
+					results.emplace_back(DoSimulation(charLayout, statsLayout));
+					resultNames.emplace_back(format + " (Realistic, DualWield)");
+					resultColours.emplace_back(getColourString());
+				}
 			}
 		}
 

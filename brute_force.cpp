@@ -173,5 +173,5 @@ std::vector<SimulationResult> CollectTopBruteForceResults()
 
 	assert(g_SimWorkQueue.size_approx() == 0);
 	
-	return results;
+	return g_TopResults;
 }

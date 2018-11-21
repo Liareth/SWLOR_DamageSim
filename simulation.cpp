@@ -108,13 +108,6 @@ StatLayout BuildStats(const CharLayout& charLayout)
 	int proficiencyBonus = GetPerkLevel(&charLayout.perks, GetWeaponProficiencyPerk(charLayout.itemType));
 
 	babBonus += proficiencyBonus;
-
-	// PROPOSED CHANGES
-	if (charLayout.itemType == ItemType::BlasterRifle || charLayout.itemType == ItemType::BlasterPistol)
-	{
-		babBonus += proficiencyBonus / 2;
-	}
-
     statLayout.bab += babBonus;
 
     return statLayout;
@@ -153,6 +146,10 @@ SimulationResult DoSimulation(CharLayout charLayout, StatLayout statLayout)
 	if (charLayout.itemType == ItemType::TwinBlade)
 	{
 		dualWieldingLevel = GetPerkLevel(&charLayout.perks, CharPerk::TwinVibroblade_Mastery);
+	}
+	else if (charLayout.itemType == ItemType::Saberstaff)
+	{
+		dualWieldingLevel = GetPerkLevel(&charLayout.perks, CharPerk::SaberStaff_Mastery);
 	}
 	else
 	{
@@ -202,22 +199,10 @@ SimulationResult DoSimulation(CharLayout charLayout, StatLayout statLayout)
 
     CharSkill::Enum governingSkill = GetGoverningSkill(charLayout.itemType);
 
-	int plasmaCellLevel = 0;
-	if (charLayout.itemType == ItemType::BlasterPistol)
-	{
-		plasmaCellLevel = GetPerkLevel(&charLayout.perks, CharPerk::BlasterPistol_PlasmaCell);
-	}
-	else if (charLayout.itemType == ItemType::BlasterRifle)
-	{
-		// PROPOSED CHANGES
-		plasmaCellLevel = GetPerkLevel(&charLayout.perks, CharPerk::BlasterRifle_PlasmaCell);
-	}
+	int plasmaCellLevel = GetPerkLevel(&charLayout.perks, CharPerk::Firearms_PlasmaCell);
 
-    bool swordOath = GetPerkLevel(&charLayout.perks, CharPerk::Stance_SwordOath);
-    bool shieldOath = GetPerkLevel(&charLayout.perks, CharPerk::Stance_ShieldOath);
-
-	// PROPOSED CHANGES
-	swordOath = swordOath && IsRanged(charLayout.itemType);
+    bool precisionTargetting = IsRanged(charLayout.itemType) && GetPerkLevel(&charLayout.perks, CharPerk::Stance_PrecisionTargeting);
+    bool shieldOath = !precisionTargetting && GetPerkLevel(&charLayout.perks, CharPerk::Stance_ShieldOath);
 
 	int weaponCritLevels = GetPerkLevel(&charLayout.perks, GetWeaponCritPerk(charLayout.itemType));
 
@@ -267,7 +252,7 @@ SimulationResult DoSimulation(CharLayout charLayout, StatLayout statLayout)
 			{
 				int hitRoll = Roll(1, 20);
 
-				if (ab + hitRoll < opponentAc && hitRoll != 20)
+				if (hitRoll == 1 || ab + hitRoll < opponentAc && hitRoll != 20)
 				{
 					return 0.0f; // Miss
 				}
@@ -327,13 +312,11 @@ SimulationResult DoSimulation(CharLayout charLayout, StatLayout statLayout)
 					strDamage *= critMultiplier;
 				}
 
-				// PROPOSED CHANGES
 				if (IsRanged(charLayout.itemType))
 				{
-					specialDamage += (statLayout.dex - 10) / 2 * 0.25f;
+					specialDamage += (statLayout.dex - 10) / 2 * 0.5f;
 				}
 
-				// PROPOSED CHANGES
 				if (charLayout.itemType == ItemType::Lightsaber || charLayout.itemType == ItemType::Saberstaff)
 				{
 					specialDamage += (statLayout.cha - 10) / 2 * 0.25f;
@@ -341,7 +324,7 @@ SimulationResult DoSimulation(CharLayout charLayout, StatLayout statLayout)
 
 				float totalDamage = baseDamage + strDamage + specialDamage;
 
-				if (swordOath)
+				if (precisionTargetting)
 				{
 					totalDamage += totalDamage / 100.0f * 20.0f;
 				}
@@ -367,7 +350,7 @@ SimulationResult DoSimulation(CharLayout charLayout, StatLayout statLayout)
 
 			for (int i = 0; i < specialApr; ++i)
 			{
-				dmgThisRound += simAttack(mainHandAb);
+				dmgThisRound += simAttack(mainHandAb, mainHandStrMultiplier);
 			}
 
 			damages.emplace_back(dmgThisRound);
@@ -401,7 +384,8 @@ std::vector<CharPerk::Enum> GetPerksForItemType(ItemType::Enum itemType)
         { 
             CharPerk::Vibroblade_ImprovedCrit,
             CharPerk::Vibroblade_Proficiency,
-            CharPerk::Vibroblade_WeaponFocus
+            CharPerk::Vibroblade_WeaponFocus,
+			CharPerk::OneHanded_DualWielding
         };
 
         case ItemType::FinesseVibroblade: return 
@@ -409,7 +393,8 @@ std::vector<CharPerk::Enum> GetPerksForItemType(ItemType::Enum itemType)
             CharPerk::FinesseVibroblade_Proficiency,
             CharPerk::FinesseVibroblade_ImprovedCrit,
             CharPerk::FinesseVibroblade_WeaponFinesse,
-            CharPerk::FinesseVibroblade_WeaponFocus 
+            CharPerk::FinesseVibroblade_WeaponFocus,
+			CharPerk::OneHanded_DualWielding
         };
 
         case ItemType::Baton: return
@@ -430,7 +415,8 @@ std::vector<CharPerk::Enum> GetPerksForItemType(ItemType::Enum itemType)
         {
             CharPerk::SaberStaff_ImprovedCrit,
             CharPerk::SaberStaff_Proficiency,
-            CharPerk::SaberStaff_WeaponFocus
+            CharPerk::SaberStaff_WeaponFocus,
+			CharPerk::SaberStaff_Mastery
         };
 
         case ItemType::Polearm: return
@@ -459,9 +445,9 @@ std::vector<CharPerk::Enum> GetPerksForItemType(ItemType::Enum itemType)
         {
             CharPerk::BlasterPistol_Proficiency,
             CharPerk::BlasterPistol_ImprovedCrit,
-            CharPerk::BlasterPistol_PlasmaCell,
             CharPerk::BlasterPistol_RapidShot,
-            CharPerk::BlasterPistol_WeaponFocus
+            CharPerk::BlasterPistol_WeaponFocus,
+			CharPerk::Firearms_PlasmaCell,
         };
 
         case ItemType::BlasterRifle: return
@@ -469,12 +455,16 @@ std::vector<CharPerk::Enum> GetPerksForItemType(ItemType::Enum itemType)
             CharPerk::BlasterRifle_Proficiency,
             CharPerk::BlasterRifle_ImprovedCrit,
             CharPerk::BlasterRifle_RapidReload,
-            CharPerk::BlasterRifle_WeaponFocus
+            CharPerk::BlasterRifle_WeaponFocus,
+			CharPerk::Firearms_PlasmaCell,
         };
 
         case ItemType::Lightsaber: return
         {
-            CharPerk::Lightsaber_Proficiency
+            CharPerk::Lightsaber_Proficiency,
+			CharPerk::Lightsaber_ImprovedCrit,
+			CharPerk::Lightsaber_WeaponFocus,
+			CharPerk::OneHanded_DualWielding
         };
     }
 
@@ -488,6 +478,13 @@ std::uint8_t GetSPCostForLevel(CharPerk::Enum perk, std::uint8_t level)
     {
         case CharPerk::BlasterPistol_Proficiency:
         case CharPerk::BlasterRifle_Proficiency:
+		{
+			if (level < 4) return 1;
+			else if (level < 7) return 2;
+			else if (level < 10) return 3;
+			else return 4;
+		}
+
         case CharPerk::MartialArts_Proficiency:
         case CharPerk::Baton_Proficiency:
         case CharPerk::FinesseVibroblade_Proficiency:
@@ -532,7 +529,7 @@ std::uint8_t GetSPCostForLevel(CharPerk::Enum perk, std::uint8_t level)
             return level == 1 ? 3 : 4;
         }
 
-        case CharPerk::BlasterPistol_PlasmaCell:
+        case CharPerk::Firearms_PlasmaCell:
         {
             if (level < 3) return 2;
             else if (level < 5) return 3;
@@ -579,7 +576,7 @@ std::uint8_t GetSPCostForLevel(CharPerk::Enum perk, std::uint8_t level)
             return 8;
         }
 
-        case CharPerk::Stance_SwordOath:
+        case CharPerk::Stance_PrecisionTargeting:
         {
             return 8;
         }
@@ -601,7 +598,11 @@ std::uint8_t GetMaxPerkLevel(CharPerk::Enum perk)
     switch (perk)
     {
         case CharPerk::BlasterPistol_Proficiency:
-        case CharPerk::BlasterRifle_Proficiency:
+        case CharPerk::BlasterRifle_Proficiency:	
+		{
+			return 15;
+		}
+
         case CharPerk::MartialArts_Proficiency:
         case CharPerk::Baton_Proficiency:
         case CharPerk::FinesseVibroblade_Proficiency:
@@ -611,13 +612,33 @@ std::uint8_t GetMaxPerkLevel(CharPerk::Enum perk)
         case CharPerk::TwinVibroblade_Proficiency:
         case CharPerk::HeavyVibroblade_Proficiency:
         case CharPerk::Polearm_Proficiency:
-        case CharPerk::BlasterPistol_PlasmaCell:
         {
             return 10;
         }
 
+		case CharPerk::Firearms_PlasmaCell:
+		{
+			return 10;
+		}
+
+		case CharPerk::Baton_WeaponFocus:
+		case CharPerk::BlasterPistol_WeaponFocus:
+		case CharPerk::BlasterRifle_WeaponFocus:
+		case CharPerk::MartialArts_WeaponFocus:
+		case CharPerk::FinesseVibroblade_WeaponFocus:
+		case CharPerk::Lightsaber_WeaponFocus:
+		case CharPerk::Vibroblade_WeaponFocus:
+		case CharPerk::SaberStaff_WeaponFocus:
+		case CharPerk::TwinVibroblade_WeaponFocus:
+		case CharPerk::HeavyVibroblade_WeaponFocus:
+		case CharPerk::Polearm_WeaponFocus:		
+		{
+			return 2;
+		}
+
         case CharPerk::OneHanded_DualWielding:
         case CharPerk::TwinVibroblade_Mastery:
+		case CharPerk::SaberStaff_Mastery:
         {
             return 3;
         }

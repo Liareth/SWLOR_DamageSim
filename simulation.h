@@ -95,18 +95,17 @@ struct CharPerk
 	{
 		BlasterPistol_Proficiency,
 		BlasterPistol_ImprovedCrit,
-		BlasterPistol_PlasmaCell,
 		BlasterPistol_RapidShot,
 		BlasterPistol_WeaponFocus,
 
 		BlasterRifle_Proficiency,
 		BlasterRifle_ImprovedCrit,
-		BlasterRifle_PlasmaCell,
 		BlasterRifle_RapidReload,
 		BlasterRifle_WeaponFocus,
 
 		Firearms_PointBlankShot,
 		Firearms_ZenMarksmanship,
+		Firearms_PlasmaCell,
 
 		MartialArts_ImprovedCrit,
 		MartialArts_Proficiency,
@@ -132,11 +131,12 @@ struct CharPerk
 		Vibroblade_WeaponFocus,
 
 		Stance_ShieldOath,
-		Stance_SwordOath,
+		Stance_PrecisionTargeting,
 
 		SaberStaff_ImprovedCrit,
 		SaberStaff_Proficiency,
 		SaberStaff_WeaponFocus,
+		SaberStaff_Mastery,
 
 		TwinVibroblade_ImprovedCrit,
 		TwinVibroblade_Mastery,
