@@ -129,6 +129,7 @@ struct CharPerk
 		Vibroblade_ImprovedCrit,
 		Vibroblade_Proficiency,
 		Vibroblade_WeaponFocus,
+		Vibroblade_PowerAttack,
 
 		Stance_ShieldOath,
 		Stance_PrecisionTargeting,
@@ -223,8 +224,10 @@ CharPerk::Enum GetWeaponProficiencyPerk(ItemType::Enum type);
 CharPerk::Enum GetWeaponCritPerk(ItemType::Enum type);
 CharBackground::Enum GetBackgroundForBABBonus(ItemType::Enum type);
 std::string ToString(ItemType::Enum type);
+std::string ToString(CharSkill::Enum skill);
 bool IsRanged(ItemType::Enum type);
 int GetPerkLevel(const std::vector<LevelledPerk>* perks, CharPerk::Enum perk);
+void RemovePerk(std::vector<LevelledPerk>* perks, CharPerk::Enum perk);
 
 int GetPrimary(CharSkill::Enum skill);
 int GetSecondary(CharSkill::Enum skill);

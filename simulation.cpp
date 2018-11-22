@@ -184,10 +184,21 @@ SimulationResult DoSimulation(CharLayout charLayout, StatLayout statLayout)
 		offHandAb -= 4;
 	}
 
-	if (dualWieldingLevel && charLayout.itemType == ItemType::FinesseVibroblade)
+	if (dualWieldingLevel)
 	{
-		mainHandAb += 2;
-		offHandAb += 2;
+		if (charLayout.itemType == ItemType::FinesseVibroblade)
+		{
+			// We assume light weapon
+			mainHandAb += 2;
+			offHandAb += 2;
+		}
+
+		if (charLayout.itemType == ItemType::TwinBlade || charLayout.itemType == ItemType::Saberstaff)
+		{
+
+			// Double-weapon offhand counts as light
+			offHandAb += 2;
+		}
 	}
 
 	int weaponSpecLevels = GetPerkLevel(&charLayout.perks, GetWeaponSpecPerk(charLayout.itemType));
@@ -196,6 +207,15 @@ SimulationResult DoSimulation(CharLayout charLayout, StatLayout statLayout)
 		mainHandAb += 1;
 		offHandAb += 1;
 	}
+
+	int powerAttackLevels = 0;
+	if (charLayout.itemType == ItemType::Vibroblade)
+	{
+		powerAttackLevels = GetPerkLevel(&charLayout.perks, CharPerk::Vibroblade_PowerAttack);
+	}
+
+	mainHandAb -= powerAttackLevels * 5;
+	offHandAb -= powerAttackLevels * 5;
 
     CharSkill::Enum governingSkill = GetGoverningSkill(charLayout.itemType);
 
@@ -278,11 +298,13 @@ SimulationResult DoSimulation(CharLayout charLayout, StatLayout statLayout)
 					case ItemType::Saberstaff: baseDamage += Roll(2, 6); break; // 2d6
 					case ItemType::Polearm: baseDamage += Roll(1, 10); break; // 1d10 halberd
 					case ItemType::TwinBlade: baseDamage += Roll(1, 8); break; // 1d8
-					case ItemType::MartialArtWeapon: break; // Unknown ?
+					case ItemType::MartialArtWeapon: baseDamage += Roll(1, 8); break; // Fists I guess?
 					case ItemType::BlasterPistol: baseDamage += Roll(2, 6); break; // 2d6
 					case ItemType::BlasterRifle: baseDamage += Roll(2, 8); break; // 2d8
 					case ItemType::Lightsaber: baseDamage += Roll(2, 6) + Roll(1, 4); break; // 2d6 + 1d4
 				}
+
+				baseDamage += powerAttackLevels * 5;
 
 				float strDamage = 0.0f;
 				float specialDamage = 0.0f;
@@ -385,6 +407,7 @@ std::vector<CharPerk::Enum> GetPerksForItemType(ItemType::Enum itemType)
             CharPerk::Vibroblade_ImprovedCrit,
             CharPerk::Vibroblade_Proficiency,
             CharPerk::Vibroblade_WeaponFocus,
+			CharPerk::Vibroblade_PowerAttack,
 			CharPerk::OneHanded_DualWielding
         };
 
@@ -586,7 +609,13 @@ std::uint8_t GetSPCostForLevel(CharPerk::Enum perk, std::uint8_t level)
             if (level == 1) return 3;
             else if (level == 2) return 4;
             else if (level == 3) return 6;
-        }         
+        }
+
+		case CharPerk::Vibroblade_PowerAttack:
+		{
+			if (level == 1) return 2;
+			else return 3;
+		}
     }
 
     assert(false);
@@ -631,7 +660,12 @@ std::uint8_t GetMaxPerkLevel(CharPerk::Enum perk)
 		case CharPerk::SaberStaff_WeaponFocus:
 		case CharPerk::TwinVibroblade_WeaponFocus:
 		case CharPerk::HeavyVibroblade_WeaponFocus:
-		case CharPerk::Polearm_WeaponFocus:		
+		case CharPerk::Polearm_WeaponFocus:
+		{
+			return 2;
+		}
+
+		case CharPerk::Vibroblade_PowerAttack:
 		{
 			return 2;
 		}
@@ -787,6 +821,22 @@ std::string ToString(ItemType::Enum type)
 	return "Invalid";
 }
 
+std::string ToString(CharSkill::Enum skill)
+{
+	switch (skill)
+	{
+		case CharSkill::Melee_Lightsabers: return "Lightsabers";
+		case CharSkill::Melee_MartialArts: return "MartialArts";
+		case CharSkill::Melee_OneHanded: return "OneHanded";
+		case CharSkill::Melee_TwoHanded: return "TwoHanded";
+		case CharSkill::Melee_TwinBlades: return "TwinBlades";
+		case CharSkill::Ranged_Blasters: return "Blasters";
+		case CharSkill::Ranged_Throwing: return "Throwing";
+	}
+
+	return "Invalid";
+}
+
 bool IsRanged(ItemType::Enum type)
 {
     return type == ItemType::BlasterPistol || type == ItemType::BlasterRifle;
@@ -808,6 +858,19 @@ int GetPerkLevel(const std::vector<LevelledPerk>* perks, CharPerk::Enum perk)
     }
 
     return 0;
+}
+
+void RemovePerk(std::vector<LevelledPerk>* perks, CharPerk::Enum perk)
+{
+	auto iter = std::remove_if(std::begin(*perks), std::end(*perks), [perk](auto& elem)
+	{
+		return elem.perk == perk;
+	});
+
+	if (iter != std::end(*perks))
+	{
+		perks->erase(iter);
+	}
 }
 
 int GetPrimary(CharSkill::Enum skill)
