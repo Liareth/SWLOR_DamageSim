@@ -217,6 +217,13 @@ SimulationResult DoSimulation(CharLayout charLayout, StatLayout statLayout)
 	mainHandAb -= powerAttackLevels * 5;
 	offHandAb -= powerAttackLevels * 5;
 
+	if (charLayout.itemType == ItemType::BlasterPistol)
+	{
+		// Apparently pistols get a guaranted +1 AB item property.
+		mainHandAb += 1;
+		offHandAb += 1;
+	}
+
     CharSkill::Enum governingSkill = GetGoverningSkill(charLayout.itemType);
 
 	int plasmaCellLevel = GetPerkLevel(&charLayout.perks, CharPerk::Firearms_PlasmaCell);
